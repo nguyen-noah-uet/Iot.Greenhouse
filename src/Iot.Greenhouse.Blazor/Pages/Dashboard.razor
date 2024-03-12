@@ -1,0 +1,249 @@
+﻿@page "/dashboard"
+@using Iot.Greenhouse.Mqtt
+@using Iot.Greenhouse.Nodes
+@using Iot.Greenhouse.Sensors
+@inherits GreenhouseComponentBase
+@inject AuthenticationStateProvider AuthenticationStateProvider
+@inject IMqttService MqttService
+@inject INodeService NodeService
+@inject ISensorService SensorService
+@inject NavigationManager NavigationManager
+@inject IToastService ToastService
+@inject IDialogService DialogService
+<div class="container">
+    <div class="text-center mb-2">
+        <FluentDesignSystemProvider AccentBaseColor="#00d700">
+            @if (!Loaded)
+            {
+                <div class="d-flex justify-content-center">
+                    <FluentProgressRing Color="@OfficeColor.Excel.ToAttributeValue()" Width="300"></FluentProgressRing>
+                    <div>Loading...</div>
+                </div>
+            }
+            else
+            {
+                <div class="row justify-content-md-center">
+                    <div class="col-lg-5">
+                        <div class="card m-0">
+                            <div class="card-header">
+                                <div class="h4">Control</div>
+                            </div>
+                            <div class="card-body">
+                                <FluentAccordion>
+                                    <FluentAccordionItem>
+                                        <HeadingTemplate>
+                                            @if (deviceStatus.PumpStatus)
+                                            {
+                                                <img src="/images/water.svg" class="img-fluid" style="max-height: 60px" />
+                                            }
+                                            else
+                                            {
+                                                <img src="/images/water-off.svg" class="img-fluid" style="max-height: 60px" />
+                                            }
+                                        </HeadingTemplate>
+                                        <ChildContent>
+                                            <div slot="end">
+                                                <FluentLabel Typo="Typography.H5">Pump</FluentLabel>
+                                                @if (deviceStatus.PumpStatus)
+                                                {
+                                                    <FluentIcon Value="@(new Icons.Filled.Size20.Circle())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Success" />
+                                                }
+                                                else
+                                                {
+                                                    <FluentIcon Value="@(new Icons.Regular.Size20.Circle())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Disabled" />
+                                                }
+                                            </div>
+                                            <div class="mb-3">
+                                                <FluentSlider Label="Select pH level:" Min="6.0" Max="7.6" Step="0.2" @bind-Value=pumpRequest.Ph>
+                                                    @foreach (double d in new[] { 6.0, 6.2, 6.4, 6.6, 6.8, 7.0, 7.2, 7.4, 7.6 })
+                                                    {
+                                                        <FluentSliderLabel Position="@d">@d</FluentSliderLabel>
+                                                    }
+                                                </FluentSlider>
+                                            </div>
+                                            <p class="text-end me-2">pH = <strong>@pumpRequest.Ph</strong></p>
+                                            <div class="mb-3">
+                                                <FluentSlider Label="Select Ec level:" Min="650" Max="800" Step="25" @bind-Value=pumpRequest.Ec>
+                                                    @foreach (double d in new[] { 650, 675, 700, 725, 750, 775, 800 })
+                                                    {
+                                                        <FluentSliderLabel Position="@d">@d</FluentSliderLabel>
+                                                    }
+                                                </FluentSlider>
+                                            </div>
+                                            <p class="text-end me-2">EC = <strong>@pumpRequest.Ec</strong></p>
+                                            <div class="d-flex justify-content-center">
+                                                <FluentButton Loading="@IsPumping" Style="width: 50%" Appearance="Appearance.Accent" OnClick="BtnPumpClick">
+                                                    @(deviceStatus.PumpStatus ? "Stop" : "Start")
+                                                </FluentButton>
+                                            </div>
+                                        </ChildContent>
+                                    </FluentAccordionItem>
+                                    <FluentAccordionItem>
+                                        <HeadingTemplate>
+                                            @if (deviceStatus.LightStatus)
+                                            {
+                                                <img src="/images/light.svg" class="img-fluid" style="max-height: 60px" />
+                                            }
+                                            else
+                                            {
+                                                <img src="/images/light-off.svg" class="img-fluid" style="max-height: 60px" />
+                                            }
+                                        </HeadingTemplate>
+                                        <ChildContent>
+                                            <div slot="end">
+                                                @* Light: @(deviceStatus.LightStatus ? "ON" : "OFF") *@
+                                                <FluentLabel Typo="Typography.H5">Light</FluentLabel>
+                                                @if (deviceStatus.LightStatus)
+                                                {
+                                                    <FluentIcon Value="@(new Icons.Filled.Size20.Circle())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Success" />
+                                                }
+                                                else
+                                                {
+                                                    <FluentIcon Value="@(new Icons.Regular.Size20.Circle())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Disabled" />
+                                                }
+                                            </div>
+                                            <div class="d-flex justify-content-center">
+                                                <FluentButton Loading="@IsLightTurning" Style="width: 50%" Appearance="Appearance.Accent" OnClick="BtnLightClick">
+                                                    Turn @(deviceStatus.LightStatus ? "Off" : "On")
+                                                </FluentButton>
+                                            </div>
+                                        </ChildContent>
+                                    </FluentAccordionItem>
+                                    <FluentAccordionItem>
+                                        <HeadingTemplate>
+                                            @if (deviceStatus.FanStatus)
+                                            {
+                                                <img src="/images/fan.svg" class="img-fluid" style="max-height: 60px" />
+                                            }
+                                            else
+                                            {
+                                                <img src="/images/fan-off.svg" class="img-fluid" style="max-height: 60px" />
+                                            }
+                                        </HeadingTemplate>
+                                        <ChildContent>
+                                            <div slot="end">
+                                                @* Fan: @(deviceStatus.FanStatus ? "ON" : "OFF") *@
+                                                <FluentLabel Typo="Typography.H5">Fan</FluentLabel>
+                                                @if (deviceStatus.FanStatus)
+                                                {
+                                                    <FluentIcon Value="@(new Icons.Filled.Size20.Circle())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Success" />
+                                                }
+                                                else
+                                                {
+                                                    <FluentIcon Value="@(new Icons.Regular.Size20.Circle())" Color="Microsoft.FluentUI.AspNetCore.Components.Color.Disabled" />
+                                                }
+                                            </div>
+                                            <div class="d-flex justify-content-center">
+                                                <FluentButton Loading="@IsFanTurning" Style="width: 50%" Appearance="Appearance.Accent" OnClick="BtnFanClick">
+                                                    Turn @(deviceStatus.FanStatus ? "Off" : "On")
+                                                </FluentButton>
+                                            </div>
+                                        </ChildContent>
+                                    </FluentAccordionItem>
+                                </FluentAccordion>
+                            </div>
+                            <div class="card-header">
+                                <div class="h4">Sensor</div>
+                            </div>
+                            <div class="card-body">
+                                <FluentDataGrid Items="@NodesQuery">
+                                    <TemplateColumn Align="Align.Center">
+                                        <a href="/node-detail/@context.Node.Id"><strong>@context.Node.NodeName</strong></a>
+                                    </TemplateColumn>
+                                    <TemplateColumn Sortable="false" Align="Align.Center" Title="Active">
+                                        @if (context.IsActive)
+                                        {
+                                            <div>Yes</div>
+                                        }
+                                        else
+                                        {
+                                            <div>No</div>
+                                        }
+                                    </TemplateColumn>
+                                    <PropertyColumn Property="@(p => p.Humidity)" Sortable="false" Title="Humi." Align="Align.Center" Format="00"/>
+                                    <PropertyColumn Property="@(p => p.Temperature)" Sortable="false" Title="Temp." Format="00" Align="Align.Center"/>
+                                    <PropertyColumn Property="@(p => p.Ph)" Sortable="false" Title="pH" Align="Align.Center" Format="0.0"/>
+                                    <PropertyColumn Property="@(p => p.Ec)" Sortable="false" Title="EC" Align="Align.Center" Format="000"/>
+                                    
+                                    <TemplateColumn Sortable="false" Align="Align.Center" Title="Pump">
+                                        @if(context.IsPumpOn is null)
+                                        {
+                                            <div>N/A</div>
+                                        }
+                                        else if(context.IsPumpOn.Value){
+                                            <div>ON</div>
+                                        }
+                                        else{
+                                            <div>OFF</div>
+                                        }
+                                    </TemplateColumn>
+                                </FluentDataGrid>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-7 border-start">
+                        <div class="card m-0">
+                            <div>
+                                <FluentCard class="diagram align-middle m-1">
+                                    <img src="/images/grass.png" class="img-fluid" />
+                                    @foreach (var m in Nodes)
+                                    {
+                                        <div class="container text-center">
+                                            <div class="my-node" id="node-@m.Node.Id">
+                                                <div>
+                                                    <a href="/node-detail/@m.Node.Id"><span class="h4">@m.Node.NodeName</span></a>
+                                                </div>
+                                                
+                                                <table class="text-center" style="width:100%; margin-top: -50px">
+                                                    @if (m.Node.Id == 1)
+                                                    {
+                                                        @if (deviceStatus.PumpStatus)
+                                                        {
+                                                            <tr>
+                                                                <td>
+                                                                    <div class="sensor-value">
+                                                                        <FluentProgress Class="align-center p-2" BackgroundColor="transparent" Color="green"></FluentProgress>
+                                                                        Pump: ON
+                                                                    </div>
+                                                                </td>
+                                                            </tr>
+                                                        }
+                                                        else
+                                                        {
+                                                            <div class="sensor-value">Pump: OFF</div>
+                                                        }
+                                                    }
+                                                    else if (m.Node.Id == 2)
+                                                    {
+                                                        <tr>
+                                                            <td class="sensor-value">@(m.Ph)</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="sensor-value">@(m.Ec)</td>
+                                                        </tr>
+                                                    }
+                                                    else if (m.Node.Id == 3)
+                                                    {
+                                                        <tr>
+                                                            <td class="sensor-value">@(m.Humidity)%</td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td class="sensor-value">@(m.Temperature)°C</td>
+                                                        </tr>
+                                                    }
+                                                </table>
+                                            </div>
+
+                                        </div>
+                                    }
+                                </FluentCard>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            }
+        </FluentDesignSystemProvider>
+
+    </div>
+</div>

@@ -1,0 +1,45 @@
+version: '3.4'
+networks:
+  mynetwork:
+volumes:
+  mssqldata:
+  portainerdata:
+services:
+  iot.greenhouse.db:
+    image: "mcr.microsoft.com/mssql/server:2022-latest"
+    container_name: iot.greenhouse.db
+    ports:
+      - 1433:1433
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=Asdf1234*
+    networks:
+      - mynetwork
+    volumes:
+      - mssqldata:/var/opt/mssql
+
+
+  iot.greenhouse.blazor:
+    image: ${DOCKER_REGISTRY-}iotgreenhouseblazor
+    container_name: iot.greenhouse.blazor
+    build:
+      context: .
+      dockerfile: src/Iot.Greenhouse.Blazor/Dockerfile
+    environment:
+      - CONNECTIONSTRINGS__DEFAULT="Data Source=iot.greenhouse.db;Initial Catalog=Greenhouse;User Id=sa;Password=Asdf1234*;TrustServerCertificate=True"
+    depends_on:
+      - iot.greenhouse.db
+    networks:
+      - mynetwork
+
+
+  portainer:
+    image: portainer/portainer-ce:latest
+    ports:
+      - 9443:9443
+    volumes:
+        - portainerdata:/data
+        - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+
+

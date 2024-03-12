@@ -1,0 +1,103 @@
+﻿@using Syncfusion.Blazor.Charts
+
+@inject NavigationManager NavigationManager
+<div class="control-section" align='center'>
+    <SfChart Title="@Title" Width="@Width" Height="220px">
+        <ChartArea><ChartAreaBorder Width="0"></ChartAreaBorder></ChartArea>
+        <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.DateTime" LabelFormat="hh:mm" IntervalType="IntervalType.Minutes" EdgeLabelPlacement="EdgeLabelPlacement.Shift">
+            <ChartAxisMajorGridLines Width="0"></ChartAxisMajorGridLines>
+        </ChartPrimaryXAxis>
+        <ChartPrimaryYAxis LabelFormat="{value}" RangePadding="ChartRangePadding.None" Minimum="@MinValue" Maximum="@MaxValue" Interval="@Interval">
+            <ChartAxisLineStyle Width="0"></ChartAxisLineStyle>
+            <ChartAxisMajorTickLines Width="0"></ChartAxisMajorTickLines>
+        </ChartPrimaryYAxis>
+        <ChartTooltipSettings Header="@Title" Enable="true" Shared="true" EnableMarker="false" Format="${point.x} : <b>${point.y}</b>"></ChartTooltipSettings>
+        <ChartSeriesCollection>
+            <ChartSeries DataSource="@ChartPoints" XName="Period" Width="2"
+                         SegmentAxis="Segment.Y" YName="Value" Type="ChartSeriesType.MultiColoredLine">
+                <ChartSegments>
+                    <ChartSegment Value="@LowValue" Color="red">
+                    </ChartSegment>
+                    <ChartSegment Value="@HighValue" Color="green"></ChartSegment>
+                    <ChartSegment Color="red"></ChartSegment>
+                </ChartSegments>
+            </ChartSeries>
+        </ChartSeriesCollection>
+    </SfChart>
+</div>
+<style>
+    .chartCircle {
+        width: 10px;
+        height: 10px;
+        border-radius: 15px;
+    }
+
+    .blueCircle {
+        color: blue;
+        font-weight: bold;
+    }
+
+    .greenCircle {
+        color: green;
+        font-weight: bold;
+    }
+
+    .redCircle {
+        color: red;
+        font-weight: bold;
+    }
+
+    .chartPadding {
+        padding-left: 5px;
+        font-size: 14px;
+    }
+
+    ellipse[id*=_Trackball_0] {
+        stroke-opacity: 1;
+    }
+
+    ellipse[id*=_Trackball_1] {
+        stroke-width: 1.2 !important;
+        stroke: white !important;
+    }
+</style>
+@code {
+    [Parameter] public string Title { get; set; } = "Title";
+    [Parameter] public string Unit { get; set; } = "Unit";
+    [Parameter] public double HighValue { get; set; } = 20;
+    [Parameter] public double LowValue { get; set; } = 80;
+    [Parameter] public double MinValue { get; set; } = 0;
+    [Parameter] public double MaxValue { get; set; } = 100;
+    [Parameter] public double Interval { get; set; } = 10;
+
+    public string FontFamily { get; set; } = "Segoe UI";
+    public string Width { get; set; } = "100%";
+    private int[] annualMean = { 380, 410, 310, 540, 510, 330, 490, 470, 472, 460, 550, 420, 380, 430, 385, 520, 580, 420, 350, 505,
+        535, 410, 204, 400, 415, 408, 415, 350, 375, 500, 390, 450, 440, 350, 400, 365, 490, 400, 520, 510,
+        395, 380, 404, 400, 500, 390, 610, 380, 390, 420, 440, 570, 600, 380, 410, 405, 480, 320, 420, 440,
+        320, 280, 320, 400, 390, 460, 470, 490, 420, 480, 410, 420, 580, 410, 380, 480, 360, 650, 680, 720,
+        580, 480, 520, 440, 420, 430, 380, 520, 410, 540, 400, 390, 460, 470, 490, 420, 480, 470, 490, 330,
+        520, 480, 580, 590, 600, 310, 480, 500, 400, 508, 480, 460, 700, 705, 480, 410, 480};
+    private string X { get; set; } = "93%";
+    private string Y { get; set; } = "47%";
+    [Parameter]
+    public List<LineChartData> ChartPoints { get; set; }
+    protected override void OnInitialized()
+    {
+
+    }
+    double GetRandomDouble(double min, double max)
+    {
+        if (min >= max)
+        {
+            throw new ArgumentException("Min value must be less than max value");
+        }
+        var num = Random.Shared.NextDouble() * (max - min) + min;
+        return Math.Round(num, 1);
+    }
+    public class LineChartData
+    {
+        public DateTime Period { get; set; }
+        public double Value { get; set; }
+    }
+}

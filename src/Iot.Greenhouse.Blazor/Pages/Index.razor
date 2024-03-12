@@ -1,0 +1,20 @@
+﻿@page "/"
+@using Microsoft.Extensions.Logging
+@inherits GreenhouseComponentBase
+@inject NavigationManager NavigationManager
+<div class="container">
+    <div class="text-center mb-2">
+        <p class="h5">@L["Welcome"]</p>
+        <FluentAnchor Href="Account/Login" Class="w-25" Appearance="Appearance.Accent">@L["Login"]</FluentAnchor>
+    </div>
+</div>
+    @code {
+    protected override void OnInitialized()
+    {
+        if (CurrentUser.IsAuthenticated)
+        {
+            NavigationManager.NavigateTo("/dashboard");
+        }
+    }
+
+}

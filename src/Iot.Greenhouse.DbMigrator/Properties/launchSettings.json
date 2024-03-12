@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Iot.Greenhouse.DbMigrator": {
+      "commandName": "Project"
+    },
+    "Docker": {
+      "commandName": "Docker"
+    }
+  }
+}

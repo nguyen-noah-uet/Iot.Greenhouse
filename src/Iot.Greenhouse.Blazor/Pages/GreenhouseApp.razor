@@ -1,0 +1,36 @@
+﻿@using Microsoft.Extensions.Options
+@using Microsoft.Extensions.Localization
+@using Volo.Abp.AspNetCore.Components.Web.LeptonXLiteTheme
+@using global::Localization.Resources.AbpUi
+@using Volo.Abp.AspNetCore.Components.Web.LeptonXLiteTheme.Themes.LeptonXLite
+@using Volo.Abp.AspNetCore.Components.Web.Theming.Routing
+@inject IOptions<AbpRouterOptions> RouterOptions
+@inject IOptions<LeptonXLiteTheme> LayoutOptions
+
+@inject IStringLocalizer<AbpUiResource> UiLocalizer
+<CascadingAuthenticationState>
+    <Router AppAssembly="RouterOptions.Value.AppAssembly"
+            AdditionalAssemblies="RouterOptions.Value.AdditionalAssemblies">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                <NotAuthorized>
+                    @if (context.User?.Identity?.IsAuthenticated == false)
+                    {
+                        <RedirectToLogin/>
+                    }
+                    else
+                    {
+
+                    }
+                </NotAuthorized>
+            </AuthorizeRouteView>
+        </Found>
+        <NotFound>
+            <LayoutView Layout="@typeof(MainLayout)">
+
+            </LayoutView>
+        </NotFound>
+    </Router>
+</CascadingAuthenticationState>
+<FluentToastProvider MaxToastCount="4" Timeout="9000" ShowCloseButton="true" Position="ToastPosition.TopRight"/>
+<FluentDialogProvider/>
