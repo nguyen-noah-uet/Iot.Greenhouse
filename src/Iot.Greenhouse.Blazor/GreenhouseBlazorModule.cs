@@ -64,43 +64,43 @@ public class GreenhouseBlazorModule : AbpModule
 {
     public override void PreConfigureServices(ServiceConfigurationContext context)
     {
-        //var hostingEnvironment = context.Services.GetHostingEnvironment();
-        //var configuration = context.Services.GetConfiguration();
+        var hostingEnvironment = context.Services.GetHostingEnvironment();
+        var configuration = context.Services.GetConfiguration();
 
-        //context.Services.PreConfigure<AbpMvcDataAnnotationsLocalizationOptions>(options =>
-        //{
-        //    options.AddAssemblyResource(
-        //        typeof(GreenhouseResource),
-        //        typeof(GreenhouseDomainModule).Assembly,
-        //        typeof(GreenhouseDomainSharedModule).Assembly,
-        //        typeof(GreenhouseApplicationModule).Assembly,
-        //        typeof(GreenhouseApplicationContractsModule).Assembly,
-        //        typeof(GreenhouseBlazorModule).Assembly
-        //    );
-        //});
+        context.Services.PreConfigure<AbpMvcDataAnnotationsLocalizationOptions>(options =>
+        {
+            options.AddAssemblyResource(
+                typeof(GreenhouseResource),
+                typeof(GreenhouseDomainModule).Assembly,
+                typeof(GreenhouseDomainSharedModule).Assembly,
+                typeof(GreenhouseApplicationModule).Assembly,
+                typeof(GreenhouseApplicationContractsModule).Assembly,
+                typeof(GreenhouseBlazorModule).Assembly
+            );
+        });
 
-        //PreConfigure<OpenIddictBuilder>(builder =>
-        //{
-        //    builder.AddValidation(options =>
-        //    {
-        //        options.AddAudiences("Greenhouse");
-        //        options.UseLocalServer();
-        //        options.UseAspNetCore();
-        //    });
-        //});
+        PreConfigure<OpenIddictBuilder>(builder =>
+        {
+            builder.AddValidation(options =>
+            {
+                options.AddAudiences("Greenhouse");
+                options.UseLocalServer();
+                options.UseAspNetCore();
+            });
+        });
 
-        //if (!hostingEnvironment.IsDevelopment())
-        //{
-        //    PreConfigure<AbpOpenIddictAspNetCoreOptions>(options =>
-        //    {
-        //        options.AddDevelopmentEncryptionAndSigningCertificate = false;
-        //    });
+        if (!hostingEnvironment.IsDevelopment())
+        {
+            PreConfigure<AbpOpenIddictAspNetCoreOptions>(options =>
+            {
+                options.AddDevelopmentEncryptionAndSigningCertificate = false;
+            });
 
-        //    PreConfigure<OpenIddictServerBuilder>(serverBuilder =>
-        //    {
-        //        serverBuilder.AddProductionEncryptionAndSigningCertificate("openiddict.pfx", "53b9700b-c462-4147-9757-0ad0643ad22e");
-        //    });
-        //}
+            PreConfigure<OpenIddictServerBuilder>(serverBuilder =>
+            {
+                serverBuilder.AddProductionEncryptionAndSigningCertificate("openiddict.pfx", "53b9700b-c462-4147-9757-0ad0643ad22e");
+            });
+        }
     }
 
     public override void ConfigureServices(ServiceConfigurationContext context)
