@@ -1,0 +1,112 @@
+﻿@using Iot.Greenhouse.Devices
+@using Iot.Greenhouse.Mqtt
+@using Iot.Greenhouse.Sensors
+@using MQTTnet.Client
+@using System.Text.RegularExpressions
+@using System.Text
+@using static Iot.Greenhouse.Blazor.Pages.Dashboard
+@inject IMqttService MqttService
+@if (Detail)
+{
+    <FluentAccordionItem>
+        <HeadingTemplate>
+            <div class="h5">
+                <div>@Sensor.Sensor.Name: <span style="background-color:@color;">@(Sensor.CurrentValue.ToString("#.#")) @Sensor.Sensor.Unit</span></div>
+            </div>
+        </HeadingTemplate>
+        <ChildContent>
+            <div slot="end">
+                @switch (Sensor.Sensor.SensorType)
+                {
+                    case SensorType.SoilMoisture:
+                        <img src="/images/soil-moisture.svg" class="img-fluid m-2" style="max-height: 60px" />
+                        break;
+                    case SensorType.Temperature:
+                        <img src="/images/temperature.svg" class="img-fluid m-2" style="max-height: 60px" />
+                        break;
+                    case SensorType.Humidity:
+                        <img src="/images/humidity.svg" class="img-fluid m-2" style="max-height: 60px" />
+                        break;
+                    case SensorType.Ph:
+                        <img src="/images/ph-sensor.svg" class="img-fluid m-2" style="max-height: 60px" />
+                        break;
+                    case SensorType.Ec:
+                        <img src="/images/ec-sensor.svg" class="img-fluid m-2" style="max-height: 60px" />
+                        break;
+
+                    default:
+                        break;
+                }
+
+            </div>
+            <div class="d-flex justify-content-end">
+                <div class="text-black-50">
+                    ID: @Sensor.Sensor.Id
+                </div>
+            </div>
+            <div class="d-flex justify-content-end">
+                <div class="h6">
+                    Current: @(Sensor.CurrentValue.ToString("#.#"))
+                </div>
+            </div>
+            <div class="d-flex justify-content-end">
+                <div class="h6">
+                    Unit: @Sensor.Sensor.Unit
+                </div>
+            </div>
+
+        </ChildContent>
+    </FluentAccordionItem>
+}
+else
+{
+    <div class="h5 ms-1">
+        <div>@Sensor.Sensor.Name: <span style="background-color:@color;">@(Sensor.CurrentValue.ToString("#.#")) @Sensor.Sensor.Unit</span></div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public SensorViewModel Sensor { get; set; }
+    private bool showAnimate = false;
+    private string color = "transparent";
+    [Parameter]
+    public bool Detail { get; set; }
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        MqttService.SubscribeMessageHandler(OnSensorMessageReceived);
+
+    }
+    private async Task OnSensorMessageReceived(MqttApplicationMessageReceivedEventArgs e)
+    {
+        Guid sensorId;
+        var topic = e.ApplicationMessage.Topic;
+        // device-status/{deviceId}/
+        Regex regex = new(@"sensors\/([a-f,0-9,-]+)\/");
+        var match = regex.Match(topic);
+        if (match.Success)
+        {
+            sensorId = Guid.Parse(match.Groups[1].Value);
+            if (sensorId == Sensor.Sensor.Id)
+            {
+                var payload = Encoding.UTF8.GetString(e.ApplicationMessage.PayloadSegment);
+                if (double.TryParse(payload, out double value))
+                {
+                    Sensor.CurrentValue = value;
+                    await Notify();
+                }
+            }
+        }
+    }
+    private async Task Notify()
+    {
+
+        color = "#91c891";
+        await InvokeAsync(StateHasChanged);
+        await Task.Delay(1000);
+        color = "transparent";
+        await InvokeAsync(StateHasChanged);
+    }
+}
+

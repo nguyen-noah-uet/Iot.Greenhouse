@@ -1,14 +1,19 @@
 ﻿@page "/node-detail/{NodeId}"
+@using Iot.Greenhouse.Devices
 @using Iot.Greenhouse.Nodes
 @using Iot.Greenhouse.Blazor.Components
 @using Iot.Greenhouse.ExtensionMethods
 @using Iot.Greenhouse.Sensors
+@using static Iot.Greenhouse.Blazor.Pages.Dashboard
 @inject INodeService NodeService
 @inject ISensorService SensorService
+@inject IDeviceService DeviceService
+@inject ISensorDataService SensorDataService
+
 @attribute [StreamRendering(true)]
 @rendermode RenderMode.InteractiveServer
 @inherits GreenhouseComponentBase
-@if (!CurrentUser.IsAuthenticated)
+@if (!CurrentUser.IsAuthenticated && Loaded)
 {
     <div class="text-center h2">401 Unauthorized</div>
     return;
@@ -24,12 +29,12 @@ else
         <div class="text-center h2">404 NotFound</div>
         return;
     }
-    <div class="text-center h2 mb-4">@Node.NodeName</div>
+    <div class="text-center h2 mb-4">@Node.Name</div>
     <div class="row mb-4">
         <div class="col-md-6">
             <div class="h4">From</div>
             <div>
-                <FluentDatePicker @bind-Value="@MyDate0"/>
+                <FluentDatePicker @bind-Value="@MyDate0" />
                 <FluentTimePicker @bind-Value="@MyTime0" />
             </div>
         </div>
@@ -40,6 +45,9 @@ else
         </div>
     </div>
     <div>
+        @foreach(var sensor in NodeViewModel.Sensors)
+		{
+        }
         <div class="card">
             <div class="card-header h3 text-center">Humidity</div>
             <div class="card-body">
@@ -126,84 +134,87 @@ else
     public Stat? TemperatureStat { get; set; }
     public Stat? PhStat { get; set; }
     public Stat? EcStat { get; set; }
-    public NodeDto? Node
-    {
-        get;
-        set;
-    }
+    public NodeDto? Node { get; set; }
+    public NodeViewModel? NodeViewModel { get; set; }
 
     public bool Loaded { get; set; }
     protected override async Task OnInitializedAsync()
     {
         // if (!CurrentUser.IsAuthenticated)
         //     return;
-        if (!int.TryParse(NodeId, out var nodeId))
+        if (!Guid.TryParse(NodeId, out var nodeId))
             return;
         try
         {
             Node = await NodeService.GetAsync(nodeId);
+            NodeViewModel = new NodeViewModel()
+                {
+                    Node = Node,
+                    Sensors = (await SensorService.GetByNodeId(Node.Id)).Select(x => new SensorViewModel() { Sensor = x }).ToList(),
+                    Devices = (await DeviceService.GetByNodeId(Node.Id)).Select(x => new DeviceViewModel() { Device = x }).ToList()
+                };
+            
         }
         catch (Exception)
         {
             return;
         }
-        if (Node is null)
-            return;
-        (HumidityChartPoints, HumidityStat) = await GetData(nodeId, SensorType.Humidity);
-        (TemperatureChartPoints, TemperatureStat) = await GetData(nodeId, SensorType.Temperature);
-        (EcChartPoints, EcStat) = await GetData(nodeId, SensorType.Ec);
-        (PhChartPoints, PhStat) = await GetData(nodeId, SensorType.Ph);
+
+        // (HumidityChartPoints, HumidityStat) = await GetData(nodeId, SensorType.Humidity);
+        // (TemperatureChartPoints, TemperatureStat) = await GetData(nodeId, SensorType.Temperature);
+        // (EcChartPoints, EcStat) = await GetData(nodeId, SensorType.Ec);
+        // (PhChartPoints, PhStat) = await GetData(nodeId, SensorType.Ph);
         Loaded = true;
 
         await InvokeAsync(StateHasChanged);
     }
 
-    private async Task<(List<MyChart.LineChartData>, Stat)> GetData(int nodeId, SensorType sensorType)
-    {
-        double average = default;
-        double min = default;
-        double max = default;
-        double median = default;
-        double stdDev = default;
-        List<MyChart.LineChartData> list = new();
-        var data = await SensorService.GetLatestValue(nodeId, sensorType, DateTime.Now.AddMinutes(-90));
-        if (data.Count == 0)
-        {
-            data = await SensorService.GetLatestValue(nodeId, sensorType, 100);
-        }
+    // private async Task<(List<MyChart.LineChartData>, Stat)> GetData(int nodeId, SensorType sensorType)
+    // {
+    //     double average = default;
+    //     double min = default;
+    //     double max = default;
+    //     double median = default;
+    //     double stdDev = default;
+    //     List<MyChart.LineChartData> list = new();
+    //     var data = await SensorService.GetLatestValue(nodeId, sensorType, DateTime.Now.AddMinutes(-90));
+    //     if (data.Count == 0)
+    //     {
+    //         data = await SensorService.GetLatestValue(nodeId, sensorType, 100);
+    //     }
 
-        if (data.Count == 0)
-        {
-            return (list, new Stat()
-                {
-                    Average = average,
-                    Min = min,
-                    Max = max,
-                    Median = median,
-                    StdDev = stdDev
-                });
-        }
+    //     if (data.Count == 0)
+    //     {
+    //         return (list, new Stat()
+    //             {
+    //                 Average = average,
+    //                 Min = min,
+    //                 Max = max,
+    //                 Median = median,
+    //                 StdDev = stdDev
+    //             });
+    //     }
 
-        foreach (var v in data)
-        {
-            list.Add(new() { Period = v.CreationTime, Value = v.SensorValue });
-        }
+    //     foreach (var v in data)
+    //     {
+    //         list.Add(new() { Period = v.CreationTime, Value = v.SensorValue });
+    //     }
 
-        average = data.Average(x => x.SensorValue);
-        min = data.Min(x => x.SensorValue);
-        max = data.Max(x => x.SensorValue);
-        median = list.Select(x => x.Value).Median();
-        stdDev = list.Select(x => x.Value).StandardDeviation();
+    //     average = data.Average(x => x.SensorValue);
+    //     min = data.Min(x => x.SensorValue);
+    //     max = data.Max(x => x.SensorValue);
+    //     median = list.Select(x => x.Value).Median();
+    //     stdDev = list.Select(x => x.Value).StandardDeviation();
 
-        return (list, new Stat()
-            {
-                Average = average,
-                Min = min,
-                Max = max,
-                Median = median,
-                StdDev = stdDev
-            });
-    }
+    //     return (list, new Stat()
+    //         {
+    //             Average = average,
+    //             Min = min,
+    //             Max = max,
+    //             Median = median,
+    //             StdDev = stdDev
+    //         });
+    // }
 
     private double GetRandomDouble(double min, double max)
     {

@@ -3,7 +3,6 @@ networks:
   mynetwork:
 volumes:
   mssqldata:
-  portainerdata:
 services:
   iot.greenhouse.db:
     image: "mcr.microsoft.com/mssql/server:2022-latest"
@@ -26,20 +25,11 @@ services:
       context: .
       dockerfile: src/Iot.Greenhouse.Blazor/Dockerfile
     environment:
-      - CONNECTIONSTRINGS__DEFAULT="Data Source=iot.greenhouse.db;Initial Catalog=Greenhouse;User Id=sa;Password=Asdf1234*;TrustServerCertificate=True"
+      - ConnectionStrings__Default=Data Source=iot.greenhouse.db;Initial Catalog=IotGreenhouse;User Id=sa;Password=Asdf1234*;TrustServerCertificate=True
     depends_on:
       - iot.greenhouse.db
     networks:
       - mynetwork
 
-
-  portainer:
-    image: portainer/portainer-ce:latest
-    ports:
-      - 9443:9443
-    volumes:
-        - portainerdata:/data
-        - /var/run/docker.sock:/var/run/docker.sock
-    restart: unless-stopped
 
 

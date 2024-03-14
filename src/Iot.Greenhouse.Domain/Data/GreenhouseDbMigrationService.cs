@@ -146,7 +146,7 @@ public class GreenhouseDbMigrationService : ITransientDependency
         return dbMigrationsProjectFolder != null;
     }
 
-    private bool MigrationsFolderExists()
+    public bool MigrationsFolderExists()
     {
         var dbMigrationsProjectFolder = GetEntityFrameworkCoreProjectFolderPath();
         return dbMigrationsProjectFolder != null && Directory.Exists(Path.Combine(dbMigrationsProjectFolder, "Migrations"));

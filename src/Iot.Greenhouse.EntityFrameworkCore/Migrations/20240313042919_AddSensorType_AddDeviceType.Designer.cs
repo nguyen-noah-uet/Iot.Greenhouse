@@ -4,6 +4,7 @@ using Iot.Greenhouse.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Volo.Abp.EntityFrameworkCore;
 
@@ -12,9 +13,11 @@ using Volo.Abp.EntityFrameworkCore;
 namespace Iot.Greenhouse.Migrations
 {
     [DbContext(typeof(GreenhouseDbContext))]
-    partial class GreenhouseDbContextModelSnapshot : ModelSnapshot
+    [Migration("20240313042919_AddSensorType_AddDeviceType")]
+    partial class AddSensorType_AddDeviceType
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -1,4 +1,5 @@
-﻿using Iot.Greenhouse.Nodes;
+﻿using Iot.Greenhouse.Devices;
+using Iot.Greenhouse.Nodes;
 using Iot.Greenhouse.Sensors;
 using Microsoft.EntityFrameworkCore;
 using Volo.Abp.AuditLogging.EntityFrameworkCore;
@@ -28,6 +29,10 @@ public class GreenhouseDbContext :
     /* Add DbSet properties for your Aggregate Roots / Entities here. */
     public DbSet<Node> Nodes { get; set; }
     public DbSet<Sensor> Sensors { get; set; }
+    public DbSet<Device> Devices { get; set; }
+    public DbSet<NodeStatus> NodeStatus { get; set; }
+    public DbSet<SensorData> SensorData { get; set; }
+    public DbSet<DeviceStatus> DeviceStatus { get; set; }
     #region Entities from the modules
 
     /* Notice: We only implemented IIdentityDbContext and ITenantManagementDbContext
@@ -88,13 +93,12 @@ public class GreenhouseDbContext :
         builder.Entity<Node>(b =>
         {
             b.ToTable("Nodes");
-            b.Property(x => x.NodeName).IsRequired(true).HasMaxLength(128);
             b.HasKey(x => x.Id);
         });
-        builder.Entity<Sensor>(b =>
-        {
-            b.ToTable("Sensors");
-
-        });
+        builder.Entity<Sensor>(b => {b.ToTable("Sensors");});
+        builder.Entity<Device>(b => { b.ToTable("Devices"); });
+        builder.Entity<NodeStatus>(b => { b.ToTable("NodeStatus"); });
+        builder.Entity<SensorData>(b => { b.ToTable("SensorData"); });
+        builder.Entity<DeviceStatus>(b => { b.ToTable("DeviceStatus"); });
     }
 }

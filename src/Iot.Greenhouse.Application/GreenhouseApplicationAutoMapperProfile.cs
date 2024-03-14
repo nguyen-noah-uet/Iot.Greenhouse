@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Iot.Greenhouse.Devices;
 using Iot.Greenhouse.Nodes;
 using Iot.Greenhouse.Sensors;
 
@@ -15,5 +16,13 @@ public class GreenhouseApplicationAutoMapperProfile : Profile
         CreateMap<NodeCreateUpdateDto, Node>();
         CreateMap<Sensor, SensorDto>();
         CreateMap<SensorCreateDto, Sensor>();
+        CreateMap<Device, DeviceDto>();
+        CreateMap<DeviceCreateUpdateDto, Device>();
+        CreateMap<NodeStatus, NodeStatusDto>();
+        CreateMap<NodeStatusCreateDto, NodeStatus>();
+        CreateMap<SensorData, SensorDataDto>();
+        CreateMap<SensorDataCreateDto, SensorData>();
+        CreateMap<DeviceStatus, DeviceStatusDto>();
+        CreateMap<DeviceStatusCreateDto, DeviceStatus>();
     }
 }
