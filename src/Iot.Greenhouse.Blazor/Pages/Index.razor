@@ -11,10 +11,11 @@
     @code {
     protected override void OnInitialized()
     {
-        if (CurrentUser.IsAuthenticated)
-        {
-            NavigationManager.NavigateTo("/dashboard");
-        }
+        // if (CurrentUser.IsAuthenticated)
+        // {
+        //     NavigationManager.NavigateTo("/dashboard");
+        // }
+        NavigationManager.NavigateTo("/dashboard",true);
     }
 
 }

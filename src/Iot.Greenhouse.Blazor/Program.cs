@@ -6,6 +6,7 @@ using Iot.Greenhouse.Mqtt;
 using Iot.Greenhouse.Nodes;
 using Iot.Greenhouse.Sensors;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Data.SqlClient;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -54,7 +55,9 @@ public class Program
                 var mqttOptions = new MqttClientOptionsBuilder()
                     .WithClientId(builder.Configuration["Mqtt:ClientId"])
                     .WithTcpServer(builder.Configuration["Mqtt:Server"], builder.Configuration.GetValue<int>("Mqtt:Port"))
+
                     .WithCredentials(builder.Configuration["Mqtt:Username"], builder.Configuration["Mqtt:Password"])
+
                     .WithCleanSession()
                     .WithTimeout(TimeSpan.FromSeconds(30))
                     .Build();
@@ -85,17 +88,19 @@ public class Program
             SyncfusionLicenseProvider.RegisterLicense("MzA0MTQ1NEAzMjM0MmUzMDJlMzBpcFJaU2VIZTZzN29IRE40a2M4Ull4cU1vUTVrME9EWEg3eUZ2SnpPZjc4PQ==");
             var _mqttService = app.Services.GetRequiredService<IMqttService>();
             await _mqttService.ConnectAsync();
+
+            await app.InitializeApplicationAsync();
             var ctx = app.Services.GetRequiredService<GreenhouseDbContext>();
-            string databaseName = "Greenhouse";
-            int exist = ctx.Database.ExecuteSql($"SELECT COUNT(*) FROM sys.databases WHERE name = '{databaseName}'");
-            if (exist == 0)
+            string databaseName = "IotGreenhouse";
+            try
             {
                 await app.Services.GetRequiredService<GreenhouseDbMigrationService>().MigrateAsync();
                 await app.Services.GetRequiredService<GreenhouseDataSeeder>().SeedAsync(new DataSeedContext());
+            } catch(SqlException ex)
+            {
+                Log.Error(ex, "Error when migrating database");
             }
-
-
-            await app.InitializeApplicationAsync();
+            
             await app.RunAsync();
             return 0;
         }
