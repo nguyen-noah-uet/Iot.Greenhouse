@@ -248,7 +248,7 @@ public class GreenhouseBlazorModule : AbpModule
             app.UseHsts();
         }
 
-        app.UseHttpsRedirection();
+        //app.UseHttpsRedirection();
         app.UseCorrelationId();
         app.UseStaticFiles();
         app.UseRouting();
