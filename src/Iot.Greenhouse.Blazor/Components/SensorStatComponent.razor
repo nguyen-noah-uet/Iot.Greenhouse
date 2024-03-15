@@ -1,0 +1,166 @@
+﻿@using Iot.Greenhouse.ExtensionMethods
+@using Iot.Greenhouse.Sensors
+@using Syncfusion.Blazor.Charts
+@using static Iot.Greenhouse.Blazor.Pages.Dashboard
+
+@if (loading)
+{
+    <div class="spinner-border text-primary" role="status">
+        <span class="sr-only">Loading...</span>
+    </div>
+}
+else
+{
+    <div class="row">
+        <div class="col-md-10 mt-2">
+            <div class="h4 text-center">@(Sensor.Sensor.Name)</div>
+            <SfChart Width="100%" Height="400px">
+                <ChartArea><ChartAreaBorder Width="0"></ChartAreaBorder></ChartArea>
+                <ChartPrimaryXAxis ValueType="Syncfusion.Blazor.Charts.ValueType.DateTime" LabelFormat="dd/MM HH:mm" IntervalType="IntervalType.Minutes" EdgeLabelPlacement="EdgeLabelPlacement.Shift">
+                    <ChartAxisMajorGridLines Width="0"></ChartAxisMajorGridLines>
+                </ChartPrimaryXAxis>
+                <ChartPrimaryYAxis LabelFormat="{value}" RangePadding="ChartRangePadding.None" Minimum="@MinValue" Maximum="@MaxValue" Interval="@Interval">
+                    <ChartAxisLineStyle Width="0"></ChartAxisLineStyle>
+                    <ChartAxisMajorTickLines Width="0"></ChartAxisMajorTickLines>
+                </ChartPrimaryYAxis>
+                <ChartTooltipSettings Header="@(Sensor.Sensor.Name)" Enable="true" Shared="true" EnableMarker="false" Format="${point.x} : <b>${point.y}</b>"></ChartTooltipSettings>
+                <ChartSeriesCollection>
+                    <ChartSeries DataSource="@(Sensor.Data)" XName="CreationTime" Width="2"
+                                 SegmentAxis="Segment.Y" YName="Value" Type="ChartSeriesType.MultiColoredLine">
+                        <ChartSegments>
+                            <ChartSegment Value="@LowValue" Color="red">
+                            </ChartSegment>
+                            <ChartSegment Value="@HighValue" Color="green"></ChartSegment>
+                            <ChartSegment Color="red"></ChartSegment>
+                        </ChartSegments>
+                    </ChartSeries>
+                </ChartSeriesCollection>
+            </SfChart>
+        </div>
+        <div class="col-md-2" style="margin-top: 10em;">
+            <div class="row h5">Min: @stat.Min.ToString("0.0")</div>
+            <div class="row h5">Max: @stat.Max.ToString("0.0")</div>
+            <div class="row h5">Average: @stat.Average.ToString("0.0")</div>
+            <div class="row h5">Median: @stat.Median.ToString("0.0")</div>
+            <div class="row h5">Standard deviation: @stat.StdDev.ToString("0.0")</div>
+        </div>
+    </div>
+}
+
+@code {
+    private bool loading = true;
+    [Parameter]
+    public SensorViewModel Sensor { get; set; }
+    public string Unit { get; set; } = "Unit";
+    public double HighValue { get; set; } = 20;
+    public double LowValue { get; set; } = 80;
+    public double MinValue { get; set; } = 0;
+    public double MaxValue { get; set; } = 100;
+    public double Interval { get; set; } = 10;
+    private Stat stat{ get; set; }
+    protected override void OnInitialized()
+    {
+        switch(Sensor.Sensor.SensorType)
+        {
+            case SensorType.Temperature:
+                HighValue = 30;
+                LowValue = 10;
+                MinValue = 0;
+                MaxValue = 45;
+                Interval = 10;
+                break;
+            case SensorType.Humidity:
+                HighValue = 80;
+                LowValue = 20;
+                MinValue = 0;
+                MaxValue = 100;
+                Interval = 10;
+                break;
+            case SensorType.SoilMoisture:
+                HighValue = 80;
+                LowValue = 20;
+                MinValue = 0;
+                MaxValue = 100;
+                Interval = 20;
+                break;
+            case SensorType.Ph:
+                HighValue = 7;
+                LowValue = 5;
+                MinValue = 0;
+                MaxValue = 14;
+                Interval = 2;
+                break;
+            case SensorType.Ec:
+                HighValue = 600;
+                LowValue = 300;
+                MinValue = 0;
+                MaxValue = 800;
+                Interval = 200;
+                break;
+        }
+        stat = CalculateStat();
+        loading = false;
+    }
+    private Stat CalculateStat()
+    {
+
+        if (Sensor.Data != null && Sensor.Data.Count > 0)
+        {
+            return new Stat()
+            {
+                    Average = Sensor.Data.Average(x => x.Value),
+                    Min = Sensor.Data.Min(x => x.Value),
+                    Max = Sensor.Data.Max(x => x.Value),
+                    Median = Sensor.Data.Select(x => x.Value).Median(),
+                    StdDev = Sensor.Data.Select(x => x.Value).StandardDeviation()
+            };
+        }
+        return new Stat();
+    }
+    public class Stat
+    {
+        public double Min { get; set; } = double.NaN;
+        public double Max { get; set; } = double.NaN;
+        public double Average { get; set; } = double.NaN;
+        public double Median { get; set; } = double.NaN;
+        public double StdDev { get; set; } = double.NaN;
+    }
+}
+
+
+<style>
+    .chartCircle {
+        width: 10px;
+        height: 10px;
+        border-radius: 15px;
+    }
+
+    .blueCircle {
+        color: blue;
+        font-weight: bold;
+    }
+
+    .greenCircle {
+        color: green;
+        font-weight: bold;
+    }
+
+    .redCircle {
+        color: red;
+        font-weight: bold;
+    }
+
+    .chartPadding {
+        padding-left: 5px;
+        font-size: 14px;
+    }
+
+    ellipse[id*=_Trackball_0] {
+        stroke-opacity: 1;
+    }
+
+    ellipse[id*=_Trackball_1] {
+        stroke-width: 1 !important;
+        stroke: white !important;
+    }
+</style>
