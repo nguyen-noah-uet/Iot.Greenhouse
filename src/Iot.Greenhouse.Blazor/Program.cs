@@ -91,7 +91,6 @@ public class Program
 
             await app.InitializeApplicationAsync();
             var ctx = app.Services.GetRequiredService<GreenhouseDbContext>();
-            string databaseName = "IotGreenhouse";
             try
             {
                 await app.Services.GetRequiredService<GreenhouseDbMigrationService>().MigrateAsync();

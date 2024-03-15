@@ -9,9 +9,10 @@ namespace Iot.Greenhouse.Sensors
 {
     public interface ISensorDataService : ICrudAppService<SensorDataDto, int, PagedAndSortedResultRequestDto, SensorDataCreateDto>
     {
-        Task<SensorDataDto> GetLatestData(Guid sensorId, TimeSpan? timeSpan = default);
-        Task<List<SensorDataDto>> GetLatestDataList(Guid sensorId, TimeSpan? timeSpan = default);
-        Task<List<SensorDataDto>> GetLatestDataListByCount(Guid sensorId, int count = 100);
+        //Task<SensorDataDto> GetLatestData(Guid sensorId, TimeSpan? timeSpan = default);
+        //Task<List<SensorDataDto>> GetLatestDataList(Guid sensorId, TimeSpan? timeSpan = default);
+        //Task<List<SensorDataDto>> GetLatestDataListByCount(Guid sensorId, int count = 100);
+        Task<List<SensorDataDto>> GetByDate(Guid sensorId, DateTime from, DateTime to);
     }
 
     public class SensorDataDto : CreationAuditedEntityDto<int>
